@@ -28,6 +28,9 @@ public class Input {
     }
 
     public Input RestorePoint() => new Input(_input, _index);
+    public void Restore(Input rp) {
+        _index = rp._index;
+    }
 }
 
 public interface IParser<T> { 
