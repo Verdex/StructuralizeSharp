@@ -81,8 +81,28 @@ public class FlatMapParser<T, S, R> : IParser<R> {
     }
 }
 
+public class WhereParser<T> : IParser<T> {
+    private readonly IParser<T> _parser;
+    private readonly Func<T, bool> _pred;
+    public WhereParser(IParser<T> parser, Func<T, bool> pred) {
+        _parser = parser;
+        _pred = pred;
+    }
+
+    public ParseResult<T> Parse(IInput input) =>
+    // TODO need a restore point ?
+        _parser.Parse(input) switch {
+            Fatal<T> _ => new Fatal<T>(),
+            Error<T> _ => new Error<T>(), // TODO probably need to chain some stuff from the old one here
+            Success<T> s when _pred(s.Value) => new Success<T>(s.Value),
+            Success<T> s => new Error<T>(), // TODO probably needs to indicate the type of failure
+            _ => throw new Exception(),
+        };
+}
+
 public static class ParserExt {
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
+    public static IParser<T> Where<T>(this IParser<T> parser, Func<T, bool> pred) => new WhereParser<T>(parser, pred);
 }
