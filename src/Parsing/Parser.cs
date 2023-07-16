@@ -7,8 +7,36 @@ public record Fatal<T>() : ParseResult<T>;
 public record Error<T>() : ParseResult<T>;
 public record Success<T>(T Value) : ParseResult<T>;
 
+public interface IInput {
+    bool TryNext(out char value);
+    IInput RestorePoint();
+}
+
+public class Input : IInput {
+    private readonly string _input;
+    private int _index;
+    public Input(string input, int index) {
+        _input = input;
+        _index = index;
+    }
+
+    public bool TryNext(out char value) {
+        if ( _input.Length < _index ) {
+            value = _input[_index];
+            _index += 1;
+            return true;
+        }
+        else {
+            value = '\0';
+            return false;
+        }
+    }
+
+    public IInput RestorePoint() => new Input(_input, _index);
+}
+
 public interface IParser<T> { 
-    ParseResult<T> Parse(IEnumerator<char> input);
+    ParseResult<T> Parse(IInput input);
 }
 
 public class MapParser<T, S> : IParser<S> {
@@ -19,7 +47,7 @@ public class MapParser<T, S> : IParser<S> {
         _t = t;
     }
 
-    public ParseResult<S> Parse(IEnumerator<char> input) =>
+    public ParseResult<S> Parse(IInput input) =>
     // TODO need a restore point
         _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<S>(),
@@ -39,7 +67,7 @@ public class FlatMapParser<T, S, R> : IParser<R> {
         _final = final;
     }
 
-    public ParseResult<R> Parse(IEnumerator<char> input) {
+    public ParseResult<R> Parse(IInput input) {
         // TODO need restore point
         var r = _parser.Parse(input);
         if ( r is not Success<T> s ) {
@@ -49,7 +77,7 @@ public class FlatMapParser<T, S, R> : IParser<R> {
 
         var p = _next(s.Value);
 
-        return p.Select(s2 => _final(s.Value, s2)).Parse(input);   //_final(s.Value, s2.Value );
+        return p.Select(s2 => _final(s.Value, s2)).Parse(input);
     }
 }
 
