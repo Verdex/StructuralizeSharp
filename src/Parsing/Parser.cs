@@ -113,6 +113,17 @@ public class FatalParser<T> : IParser<T> {
         };
 }
 
+public class AlternateParser<T> : IParser<T> {
+    private readonly IParser<T> _parserA;
+    private readonly IParser<T> _parserB;
+    public FatalParser(IParser<T> parserA, IParser<T> parserB) {
+        _parserA = parserA;
+        _parserB = parserB;
+    }
+
+    public ParseResult<T> Parse(Input input) =>throw new Exception(); // TODO
+}
+
 public static class ParserExt {
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
@@ -122,4 +133,6 @@ public static class ParserExt {
 
     // TODO end
     // TODO alt
+    // TODO zero or more
+    // TODO Maybe
 }
