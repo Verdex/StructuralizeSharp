@@ -7,7 +7,7 @@ namespace StructuralizeSharpTests.ParsingTests;
 public class ParserTests {
 
     record X() : IParser<int>  {
-        public ParseResult<int> Parse(IInput input)  {
+        public ParseResult<int> Parse(Input input)  {
             return new Success<int>(4);
         }
 

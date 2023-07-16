@@ -7,12 +7,7 @@ public record Fatal<T>() : ParseResult<T>;
 public record Error<T>() : ParseResult<T>;
 public record Success<T>(T Value) : ParseResult<T>;
 
-public interface IInput {
-    bool TryNext(out char value);
-    IInput RestorePoint();
-}
-
-public class Input : IInput {
+public class Input {
     private readonly string _input;
     private int _index;
     public Input(string input, int index) {
@@ -32,11 +27,11 @@ public class Input : IInput {
         }
     }
 
-    public IInput RestorePoint() => new Input(_input, _index);
+    public Input RestorePoint() => new Input(_input, _index);
 }
 
 public interface IParser<T> { 
-    ParseResult<T> Parse(IInput input);
+    ParseResult<T> Parse(Input input);
 }
 
 public class MapParser<T, S> : IParser<S> {
@@ -47,7 +42,7 @@ public class MapParser<T, S> : IParser<S> {
         _t = t;
     }
 
-    public ParseResult<S> Parse(IInput input) =>
+    public ParseResult<S> Parse(Input input) =>
     // TODO need a restore point
         _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<S>(),
@@ -67,7 +62,7 @@ public class FlatMapParser<T, S, R> : IParser<R> {
         _final = final;
     }
 
-    public ParseResult<R> Parse(IInput input) {
+    public ParseResult<R> Parse(Input input) {
         // TODO need restore point
         var r = _parser.Parse(input);
         if ( r is not Success<T> s ) {
@@ -89,7 +84,7 @@ public class WhereParser<T> : IParser<T> {
         _pred = pred;
     }
 
-    public ParseResult<T> Parse(IInput input) =>
+    public ParseResult<T> Parse(Input input) =>
     // TODO need a restore point ?
         _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<T>(),
@@ -105,4 +100,7 @@ public static class ParserExt {
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
     public static IParser<T> Where<T>(this IParser<T> parser, Func<T, bool> pred) => new WhereParser<T>(parser, pred);
+    // TODO fatal
+    // TODO end
+    // TODO alt
 }
