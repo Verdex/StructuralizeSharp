@@ -45,6 +45,22 @@ public class ParserTests {
     }
 
     [Test]
+    public void InputShouldTryNext() {
+        var input = new Input("in");
+
+        var r1 = input.TryNext(out var a1);
+        Assert.That(r1, Is.True);
+        Assert.That(a1, Is.EqualTo('i'));
+        
+        var r2 = input.TryNext(out var a2);
+        Assert.That(r2, Is.True);
+        Assert.That(a2, Is.EqualTo('n'));
+
+        var r3 = input.TryNext(out var _);
+        Assert.That(r3, Is.False);
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;
