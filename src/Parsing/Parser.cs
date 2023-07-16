@@ -88,7 +88,7 @@ public class WhereParser<T> : IParser<T> {
     }
 
     public ParseResult<T> Parse(Input input) =>
-    // TODO need a restore point ?
+    // TODO restore point
         _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<T>(),
             Error<T> _ => new Error<T>(), // TODO probably need to chain some stuff from the old one here
@@ -98,12 +98,28 @@ public class WhereParser<T> : IParser<T> {
         };
 }
 
+public class FatalParser<T> : IParser<T> {
+    private readonly IParser<T> _parser;
+    public FatalParser(IParser<T> parser) {
+        _parser = parser;
+    }
+
+    public ParseResult<T> Parse(Input input) =>
+        _parser.Parse(input) switch {
+            Fatal<T> _ => new Fatal<T>(),
+            Error<T> _ => new Fatal<T>(), 
+            Success<T> s => s, 
+            _ => throw new Exception(),
+        };
+}
+
 public static class ParserExt {
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
     public static IParser<T> Where<T>(this IParser<T> parser, Func<T, bool> pred) => new WhereParser<T>(parser, pred);
-    // TODO fatal
+    public static IParser<T> Fatal<T>(this Parser<T> parser) => new FatalParser<T>(parser);
+
     // TODO end
     // TODO alt
 }
