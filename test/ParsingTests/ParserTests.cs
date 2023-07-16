@@ -17,6 +17,34 @@ public class ParserTests {
     };
 
     [Test]
+    public void InputShouldRestore() {
+        var input = new Input("input");
+        var rp0 = input.RestorePoint();
+
+        input.TryNext(out var x);
+        Assert.That( x, Is.EqualTo('i'));
+        input.TryNext(out var y);
+        Assert.That( y, Is.EqualTo('n'));
+        
+        var rp = input.RestorePoint();
+
+        input.TryNext(out var z);
+        Assert.That( z, Is.EqualTo('p'));
+
+        input.TryNext(out var w);
+        Assert.That( w, Is.EqualTo('u'));
+
+        input.Restore(rp);
+
+        input.TryNext(out var a);
+        Assert.That( a, Is.EqualTo('p') );
+
+        input.Restore(rp0);
+        input.TryNext(out var b);
+        Assert.That( b, Is.EqualTo('i') );
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;

@@ -10,13 +10,13 @@ public record Success<T>(T Value) : ParseResult<T>;
 public class Input {
     private readonly string _input;
     private int _index;
-    public Input(string input, int index) {
+    public Input(string input, int index = 0) {
         _input = input;
         _index = index;
     }
 
     public bool TryNext(out char value) {
-        if ( _input.Length < _index ) {
+        if ( _index < _input.Length ) {
             value = _input[_index];
             _index += 1;
             return true;
