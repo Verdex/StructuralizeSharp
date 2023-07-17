@@ -49,14 +49,18 @@ public class MapParser<T, S> : IParser<S> {
         _t = t;
     }
 
-    public ParseResult<S> Parse(Input input) =>
-    // TODO need a restore point
-        _parser.Parse(input) switch {
-            Fatal<T> _ => new Fatal<S>(),
-            Error<T> _ => new Error<S>(), // TODO probably need to chain some stuff from the old one here
+    public ParseResult<S> Parse(Input input) {
+        var rp = input.RestorePoint();
+        return _parser.Parse(input) switch {
+            Fatal<T> _ => new Fatal<S>(),// TODO probably need to chain some stuff from the old one here
+            Error<T> _ => A.B( () => {
+                input.Restore(rp);
+                return new Error<S>();
+            } ),
             Success<T> s => new Success<S>(_t(s.Value)),
             _ => throw new Exception(),
         };
+    }
 }
 
 public class FlatMapParser<T, S, R> : IParser<R> {
