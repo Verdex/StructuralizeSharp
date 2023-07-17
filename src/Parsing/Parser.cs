@@ -7,6 +7,10 @@ public record Fatal<T>() : ParseResult<T>;
 public record Error<T>() : ParseResult<T>;
 public record Success<T>(T Value) : ParseResult<T>;
 
+internal static class A {
+    public static T B<T>(Func<T> f) => f();
+}
+
 public class Input {
     private readonly string _input;
     private int _index;
@@ -116,12 +120,39 @@ public class FatalParser<T> : IParser<T> {
 public class AlternateParser<T> : IParser<T> {
     private readonly IParser<T> _parserA;
     private readonly IParser<T> _parserB;
-    public FatalParser(IParser<T> parserA, IParser<T> parserB) {
+    public AlternateParser(IParser<T> parserA, IParser<T> parserB) {
         _parserA = parserA;
         _parserB = parserB;
     }
 
-    public ParseResult<T> Parse(Input input) =>throw new Exception(); // TODO
+    public ParseResult<T> Parse(Input input) {
+        var rp = input.RestorePoint();
+
+        var resultA = _parserA.Parse(input);    
+
+        if ( resultA is Fatal<T> f ) {
+            return f;
+        }
+
+        if ( resultA is Success<T> s ) {
+            return s;
+        }
+
+        if ( resultA is Error<T> _ ) {
+            input.Restore(rp);
+            return _parserB.Parse(input) switch {
+                Fatal<T> f2 => f2,
+                Success<T> s2 => s2,
+                Error<T> e => A.B( () => {
+                    input.Restore(rp);
+                    return e;
+                }),
+                _ => throw new Exception(),
+            };
+        }
+
+        throw new Exception();
+    }
 }
 
 public static class ParserExt {
@@ -129,10 +160,10 @@ public static class ParserExt {
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
     public static IParser<T> Where<T>(this IParser<T> parser, Func<T, bool> pred) => new WhereParser<T>(parser, pred);
-    public static IParser<T> Fatal<T>(this Parser<T> parser) => new FatalParser<T>(parser);
+    public static IParser<T> Fatal<T>(this IParser<T> parser) => new FatalParser<T>(parser);
+    public static IParser<T> Alt<T>(this IParser<T> parserA, IParser<T> parserB) => new AlternateParser<T>(parserA, parserB);
 
     // TODO end
-    // TODO alt
     // TODO zero or more
     // TODO Maybe
 }
