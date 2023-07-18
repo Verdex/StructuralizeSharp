@@ -41,6 +41,17 @@ public interface IParser<T> {
     ParseResult<T> Parse(Input input);
 }
 
+public class Any : IParser<char> {
+    ParseResult<char> Parse(Input input) {
+        if (input.TryNext(out var c)) {
+            return new Success<char>(c);
+        }
+        else {
+            return new Error<char>();
+        }
+    }
+}
+
 public class MapParser<T, S> : IParser<S> {
     private readonly IParser<T> _parser;
     private readonly Func<T, S> _t;
@@ -190,6 +201,7 @@ public class AlternateParser<T> : IParser<T> {
 }
 
 public static class ParserExt {
+    public static IParser<char> Any() => new Any();
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
