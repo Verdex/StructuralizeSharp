@@ -74,16 +74,39 @@ public class FlatMapParser<T, S, R> : IParser<R> {
     }
 
     public ParseResult<R> Parse(Input input) {
-        // TODO need restore point
+        var rp = input.RestorePoint();
         var r = _parser.Parse(input);
+
+        if ( r is Error<T> _ ) {
+            input.Restore(rp);
+            return new Error<R>();
+        }
+
+        if ( r is Fatal<T> _ ) {
+            return new Fatal<R>();
+        }
+
         if ( r is not Success<T> s ) {
-            // TODO
             throw new Exception();
         }
 
         var p = _next(s.Value);
+        var r2 = p.Parse(input);
 
-        return p.Select(s2 => _final(s.Value, s2)).Parse(input);
+        if ( r2 is Error<S> _ ) {
+            input.Restore(rp);
+            return new Error<R>();
+        }
+
+        if ( r2 is Fatal<S> _ ) {
+            return new Fatal<R>();
+        }
+
+        if ( r2 is not Success<S> s2 ) {
+            throw new Exception();
+        }
+
+        return new Success<R>(_final(s.Value, s2.Value));
     }
 }
 
