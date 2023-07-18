@@ -118,15 +118,22 @@ public class WhereParser<T> : IParser<T> {
         _pred = pred;
     }
 
-    public ParseResult<T> Parse(Input input) =>
-    // TODO restore point
-        _parser.Parse(input) switch {
-            Fatal<T> _ => new Fatal<T>(),
-            Error<T> _ => new Error<T>(), // TODO probably need to chain some stuff from the old one here
+    public ParseResult<T> Parse(Input input) {
+        var rp = input.RestorePoint();
+        return _parser.Parse(input) switch {
+            Error<T> _ => A.B( () => {
+                input.Restore(rp);
+                return new Error<T>();
+            }), // TODO probably need to chain some stuff from the old one here
             Success<T> s when _pred(s.Value) => new Success<T>(s.Value),
-            Success<T> s => new Error<T>(), // TODO probably needs to indicate the type of failure
+            Success<T> _ => A.B( () => {
+                input.Restore(rp);
+                return new Error<T>();
+            }),  // TODO probably needs to indicate the type of failure
+            Fatal<T> _ => new Fatal<T>(),
             _ => throw new Exception(),
         };
+    }
 }
 
 public class FatalParser<T> : IParser<T> {
