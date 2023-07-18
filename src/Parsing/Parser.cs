@@ -2,7 +2,10 @@
 namespace StructuralizeSharp.Parsing; 
 
 
-public record IParseResult<T>();
+public interface IParseResult<T> { 
+
+}
+
 public record Fatal<T>() : IParseResult<T>;
 public record Error<T>() : IParseResult<T>;
 public record Success<T>(T Value) : IParseResult<T>;
