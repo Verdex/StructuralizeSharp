@@ -2,10 +2,10 @@
 namespace StructuralizeSharp.Parsing; 
 
 
-public record ParseResult<T>();
-public record Fatal<T>() : ParseResult<T>;
-public record Error<T>() : ParseResult<T>;
-public record Success<T>(T Value) : ParseResult<T>;
+public record IParseResult<T>();
+public record Fatal<T>() : IParseResult<T>;
+public record Error<T>() : IParseResult<T>;
+public record Success<T>(T Value) : IParseResult<T>;
 
 internal static class A {
     public static T B<T>(Func<T> f) => f();
@@ -38,11 +38,11 @@ public class Input {
 }
 
 public interface IParser<T> { 
-    ParseResult<T> Parse(Input input);
+    IParseResult<T> Parse(Input input);
 }
 
 public class Any : IParser<char> {
-    ParseResult<char> Parse(Input input) {
+    public IParseResult<char> Parse(Input input) {
         if (input.TryNext(out var c)) {
             return new Success<char>(c);
         }
@@ -60,7 +60,7 @@ public class MapParser<T, S> : IParser<S> {
         _t = t;
     }
 
-    public ParseResult<S> Parse(Input input) {
+    public IParseResult<S> Parse(Input input) {
         var rp = input.RestorePoint();
         return _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<S>(),// TODO probably need to chain some stuff from the old one here
@@ -84,7 +84,7 @@ public class FlatMapParser<T, S, R> : IParser<R> {
         _final = final;
     }
 
-    public ParseResult<R> Parse(Input input) {
+    public IParseResult<R> Parse(Input input) {
         var rp = input.RestorePoint();
         var r = _parser.Parse(input);
 
@@ -129,7 +129,7 @@ public class WhereParser<T> : IParser<T> {
         _pred = pred;
     }
 
-    public ParseResult<T> Parse(Input input) {
+    public IParseResult<T> Parse(Input input) {
         var rp = input.RestorePoint();
         return _parser.Parse(input) switch {
             Error<T> _ => A.B( () => {
@@ -153,7 +153,7 @@ public class FatalParser<T> : IParser<T> {
         _parser = parser;
     }
 
-    public ParseResult<T> Parse(Input input) =>
+    public IParseResult<T> Parse(Input input) =>
         _parser.Parse(input) switch {
             Fatal<T> _ => new Fatal<T>(),
             Error<T> _ => new Fatal<T>(), 
@@ -170,7 +170,7 @@ public class AlternateParser<T> : IParser<T> {
         _parserB = parserB;
     }
 
-    public ParseResult<T> Parse(Input input) {
+    public IParseResult<T> Parse(Input input) {
         var rp = input.RestorePoint();
 
         var resultA = _parserA.Parse(input);    

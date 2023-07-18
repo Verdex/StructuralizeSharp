@@ -7,7 +7,7 @@ namespace StructuralizeSharpTests.ParsingTests;
 public class ParserTests {
 
     record X() : IParser<int>  {
-        public ParseResult<int> Parse(Input input)  {
+        public IParseResult<int> Parse(Input input)  {
             return new Success<int>(4);
         }
 
@@ -58,6 +58,15 @@ public class ParserTests {
 
         var r3 = input.TryNext(out var _);
         Assert.That(r3, Is.False);
+    }
+
+    [Test]
+    public void AnyShouldParseAny() {
+        var input = new Input("x");
+        var p = ParserExt.Any();
+
+        var output = p.Parse(input);
+
     }
 
     [Test]
