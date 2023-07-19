@@ -70,6 +70,15 @@ public class ParserTests {
     }
 
     [Test]
+    public void AnyShouldNotParseExhaustedInput() {
+        var input = new Input("");
+        var p = ParserExt.Any();
+
+        var output = p.Parse(input);
+        Assert.That( output.IsError(), Is.True );
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;
