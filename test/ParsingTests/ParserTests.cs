@@ -65,8 +65,8 @@ public class ParserTests {
         var input = new Input("x");
         var p = ParserExt.Any();
 
-        var output = p.Parse(input);
-
+        var output = p.Parse(input).Unwrap();
+        Assert.That(output, Is.EqualTo('x'));
     }
 
     [Test]
