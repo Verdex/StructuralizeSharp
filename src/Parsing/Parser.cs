@@ -77,7 +77,7 @@ public class MapParser<T, S> : IParser<S> {
     public IParseResult<S> Parse(Input input) {
         var rp = input.RestorePoint();
         return _parser.Parse(input) switch {
-            Fatal<T> _ => new Fatal<S>(),// TODO probably need to chain some stuff from the old one here
+            Fatal<T> _ => new Fatal<S>(),
             Error<T> _ => A.B( () => {
                 input.Restore(rp);
                 return new Error<S>();
@@ -149,12 +149,12 @@ public class WhereParser<T> : IParser<T> {
             Error<T> _ => A.B( () => {
                 input.Restore(rp);
                 return new Error<T>();
-            }), // TODO probably need to chain some stuff from the old one here
+            }),
             Success<T> s when _pred(s.Value) => new Success<T>(s.Value),
             Success<T> _ => A.B( () => {
                 input.Restore(rp);
                 return new Error<T>();
-            }),  // TODO probably needs to indicate the type of failure
+            }),
             Fatal<T> _ => new Fatal<T>(),
             _ => throw new Exception(),
         };
