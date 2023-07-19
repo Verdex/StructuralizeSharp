@@ -6,14 +6,13 @@ namespace StructuralizeSharpTests.ParsingTests;
 [TestFixture]
 public class ParserTests {
 
-    record X() : IParser<int>  {
-        public IParseResult<int> Parse(Input input)  {
-            return new Success<int>(4);
-        }
+    class X : IParser<int>  {
+        private readonly IParser<int> _p = 
+               from a in ParserExt.Any()
+               where a == 'x'
+               select 5;
 
-        public IParser<T> Select<T>(Func<int, T> t) {
-           return new MapParser<int, T>(this, t);
-        }
+        public IParseResult<int> Parse(Input input) => _p.Parse(input);
     };
 
     [Test]
@@ -75,7 +74,56 @@ public class ParserTests {
         var p = ParserExt.Any();
 
         var output = p.Parse(input);
+
         Assert.That( output.IsError(), Is.True );
+    }
+
+    [Test]
+    public void SelectShouldMapResult() {
+        var input = new Input("x");
+        var p = new X();
+
+        var output = p.Select(x => x + 1).Parse(input).Unwrap();
+
+        Assert.That(output, Is.EqualTo(6));
+    }
+
+    [Test]
+    public void SelectTwiceShouldMapResult() {
+        var input = new Input("x");
+        var p = new X();
+
+        var output = p.Select(x => x + 1).Select(x => x + 1).Parse(input).Unwrap();
+
+        Assert.That(output, Is.EqualTo(7));
+    }
+
+    [Test]
+    public void FatalSelectShouldIndicateFatalAndLeaveInputAtFailurePoint() {
+        var input = new Input("_xy");
+        var p = from a in new X()
+                from b in new X().Fatal()
+                select 5;
+
+        input.TryNext(out var _);
+        var output = p.Select(x => x + 1).Parse(input);
+
+        Assert.That(output.IsFatal(), Is.True);
+        Assert.That(input.Index, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void ErrorSelectShouldIndicateErrorAndBackupRestorePoint() {
+        var input = new Input("_xy");
+        var p = from a in new X()
+                from b in new X()
+                select 5;
+
+        input.TryNext(out var _);
+        var output = p.Select(x => x + 1).Parse(input);
+
+        Assert.That(output.IsError(), Is.True);
+        Assert.That(input.Index, Is.EqualTo(1));
     }
 
     [Test]
