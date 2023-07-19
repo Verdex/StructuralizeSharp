@@ -3,7 +3,18 @@ namespace StructuralizeSharp.Parsing;
 
 
 public interface IParseResult<T> { 
+    bool IsSuccess() => this is Success<T>;
+    bool IsError() => this is Error<T>;
+    bool IsFatal() => this is Fatal<T>;
 
+    T Unwrap() {
+        if (this is Success<T> s) {
+            return s.Value;
+        }
+        else {
+            throw new Exception();
+        }
+    }
 }
 
 public record Fatal<T>() : IParseResult<T>;
