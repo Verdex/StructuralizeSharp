@@ -26,17 +26,18 @@ internal static class A {
 }
 
 public class Input {
-    private readonly string _input;
-    private int _index;
-    public Input(string input, int index = 0) {
-        _input = input;
-        _index = index;
+    public string Text { get; init; }
+    public int Index { get; private set; }
+
+    public Input(string text, int index = 0) {
+        Text = text;
+        Index = index;
     }
 
     public bool TryNext(out char value) {
-        if ( _index < _input.Length ) {
-            value = _input[_index];
-            _index += 1;
+        if ( Index < Text.Length ) {
+            value = Text[Index];
+            Index += 1;
             return true;
         }
         else {
@@ -45,9 +46,9 @@ public class Input {
         }
     }
 
-    public Input RestorePoint() => new Input(_input, _index);
+    public Input RestorePoint() => new Input(Text, Index);
     public void Restore(Input rp) {
-        _index = rp._index;
+        Index = rp.Index;
     }
 }
 
