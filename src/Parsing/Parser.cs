@@ -56,13 +56,26 @@ public interface IParser<T> {
     IParseResult<T> Parse(Input input);
 }
 
-public class Any : IParser<char> {
+public class AnyParser : IParser<char> {
     public IParseResult<char> Parse(Input input) {
         if (input.TryNext(out var c)) {
             return new Success<char>(c);
         }
         else {
             return new Error<char>();
+        }
+    }
+}
+
+public class EndParser : IParser<bool> {
+    public IParseResult<bool> Parse(Input input) {
+        var rp = input.RestorePoint();
+        if(!input.TryNext(out var _)) {
+            return new Success<bool>(true);
+        }
+        else {
+            input.Restore(rp);
+            return new Error<bool>();
         }
     }
 }
@@ -216,15 +229,15 @@ public class AlternateParser<T> : IParser<T> {
 }
 
 public static class ParserExt {
-    public static IParser<char> Any() => new Any();
+    public static IParser<char> Any() => new AnyParser();
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
     public static IParser<R> SelectMany<T, S, R>(this IParser<T> parser, Func<T, IParser<S>> next, Func<T, S, R> final)
         => new FlatMapParser<T, S, R>(parser, next, final);
     public static IParser<T> Where<T>(this IParser<T> parser, Func<T, bool> pred) => new WhereParser<T>(parser, pred);
     public static IParser<T> Fatal<T>(this IParser<T> parser) => new FatalParser<T>(parser);
     public static IParser<T> Alt<T>(this IParser<T> parserA, IParser<T> parserB) => new AlternateParser<T>(parserA, parserB);
+    public static IParser<bool> End() => new EndParser();
 
-    // TODO end
     // TODO zero or more
     // TODO Maybe
 }

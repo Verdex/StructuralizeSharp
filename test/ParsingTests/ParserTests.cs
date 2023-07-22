@@ -159,6 +159,28 @@ public class ParserTests {
     }
 
     [Test]
+    public void EndShouldParseEndInput() {
+        var input = new Input("");
+
+        var output = ParserExt.End().Parse(input);
+
+        Assert.That(output.IsSuccess(), Is.True);
+    }
+
+    [Test]
+    public void EndShouldNotParseNotEndInput() {
+        var input = new Input("x");
+
+        var output = ParserExt.End().Parse(input);
+
+        Assert.That(output.IsError(), Is.True);
+
+        var anyOutput = ParserExt.Any().Parse(input).Unwrap();
+
+        Assert.That(anyOutput, Is.EqualTo('x'));
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;
