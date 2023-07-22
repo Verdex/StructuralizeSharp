@@ -261,6 +261,4 @@ public static class ParserExt {
     public static IParser<T> Alt<T>(this IParser<T> parserA, IParser<T> parserB) => new AlternateParser<T>(parserA, parserB);
     public static IParser<bool> End() => new EndParser();
     public static IParser<IEnumerable<T>> ZeroOrMore<T>(this IParser<T> parser) => new ZeroOrMoreParser<T>(parser);
-
-    // TODO Maybe
 }
