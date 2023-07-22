@@ -127,6 +127,38 @@ public class ParserTests {
     }
 
     [Test]
+    public void AlternateShouldParseFirstOption() {
+        var input = new Input("xx");
+
+        var p1 = from a in new X()
+                 from b in new X()
+                 select 5;
+
+        var p2 = ParserExt.Any().Select(_ => 0);
+
+        var output = p1.Alt(p2).Parse(input).Unwrap();
+
+        Assert.That(output, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void AlternateShouldParseSecondOption() {
+        var input = new Input("z");
+
+        var p1 = from a in new X()
+                 from b in new X()
+                 select 5;
+
+        var p2 = from a in ParserExt.Any()
+                 where a == 'z'
+                 select 0;
+
+        var output = p1.Alt(p2).Parse(input).Unwrap();
+
+        Assert.That(output, Is.EqualTo(0));
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;
