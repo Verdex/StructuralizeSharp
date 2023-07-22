@@ -228,6 +228,29 @@ public class AlternateParser<T> : IParser<T> {
     }
 }
 
+public class ZeroOrMoreParser<T> : IParser<IEnumerable<T>> {
+    private readonly IParser<T> _parser;
+    public ZeroOrMoreParser(IParser<T> parser) {
+        _parser = parser;
+    }
+
+    public IParseResult<IEnumerable<T>> Parse(Input input) {
+        var ret = new List<T>();
+        var rp = input.RestorePoint();
+        var result = _parser.Parse(input);
+        while (result.IsSuccess()) {
+            ret.Add(result.Unwrap());
+            if (input.Index == input.Text.Length) {
+                return new Success<IEnumerable<T>>(ret);
+            }
+            rp = input.RestorePoint();
+            result = _parser.Parse(input);
+        }
+        input.Restore(rp);
+        return new Success<IEnumerable<T>>(ret);
+    }
+}
+
 public static class ParserExt {
     public static IParser<char> Any() => new AnyParser();
     public static IParser<S> Select<T, S>(this IParser<T> parser, Func<T, S> t) => new MapParser<T, S>(parser, t);
@@ -237,7 +260,7 @@ public static class ParserExt {
     public static IParser<T> Fatal<T>(this IParser<T> parser) => new FatalParser<T>(parser);
     public static IParser<T> Alt<T>(this IParser<T> parserA, IParser<T> parserB) => new AlternateParser<T>(parserA, parserB);
     public static IParser<bool> End() => new EndParser();
+    public static IParser<IEnumerable<T>> ZeroOrMore<T>(this IParser<T> parser) => new ZeroOrMoreParser<T>(parser);
 
-    // TODO zero or more
     // TODO Maybe
 }

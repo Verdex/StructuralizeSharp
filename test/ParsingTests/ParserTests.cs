@@ -181,6 +181,56 @@ public class ParserTests {
     }
 
     [Test]
+    public void ZeroOrMoreShouldParseMultipleItems() {
+        var input = new Input("xyxyzz");
+
+        var p = from x in ParserExt.Any()
+                from y in ParserExt.Any()
+                where (x, y) is ('x', 'y')
+                select 0;
+
+        var output = p.ZeroOrMore().Parse(input).Unwrap().ToArray();
+
+        Assert.That(output.Length, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void ZeroOrMoreShouldParseMultipleItemsWhenLastParseExceedsInput() {
+        var input = new Input("xyxyz");
+
+        var p = from x in ParserExt.Any()
+                from y in ParserExt.Any()
+                where (x, y) is ('x', 'y')
+                select 0;
+
+        var output = p.ZeroOrMore().Parse(input).Unwrap().ToArray();
+
+        Assert.That(output.Length, Is.EqualTo(2));
+
+        var z = ParserExt.Any().Parse(input).Unwrap();
+
+        Assert.That(z, Is.EqualTo('z'));
+    }
+
+    [Test]
+    public void ZeroOrMoreShouldParseMultipleItemsWhenLastParseHitsEnd() {
+        var input = new Input("xyxy");
+
+        var p = from x in ParserExt.Any()
+                from y in ParserExt.Any()
+                where (x, y) is ('x', 'y')
+                select 0;
+
+        var output = p.ZeroOrMore().Parse(input).Unwrap().ToArray();
+
+        Assert.That(output.Length, Is.EqualTo(2));
+
+        var e = ParserExt.End().Parse(input);
+
+        Assert.That(e.IsSuccess(), Is.True);
+    }
+
+    [Test]
     public void blarg() {
         var w1 = from x in new X() 
                 select x;
