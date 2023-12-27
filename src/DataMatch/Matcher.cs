@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace StructuralizeSharp.DataMatch;
 
-public interface IMatcher<T> {
-    IEnumerable<(string, T)> Match(IPattern pattern, T data);
+public interface IMatcher {
+    IEnumerable<(string, IData)> Match(IPattern pattern, IData data);
 }
 
 

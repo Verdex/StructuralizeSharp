@@ -1,10 +1,10 @@
 namespace StructuralizeSharp.DataMatch;
 
 
-public interface IData<TAtom> {
+public interface IData {
 
 }
 
-public interface IPattern<TAtom> { }
+public interface IPattern { }
 
 public record Capture(string Name) : IPattern;
