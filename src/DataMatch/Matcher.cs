@@ -14,10 +14,12 @@ public class Matcher : IMatcher {
         return (pattern, data) switch {
             (Wild, _) => Success(),
             (Capture c, _) => Success(c.Name, data),
-            _ => throw new NotImplementedException(),
+            (Exact e, _) when e.Data.Equals(data) => Success(),
+            _ => Failure(), 
         };
     }
 
+    private static IEnumerable<IEnumerable<(string, IData)>> Failure() => Array.Empty<IEnumerable<(string, IData)>>();
     private static IEnumerable<IEnumerable<(string, IData)>> Success() => new [] { Array.Empty<(string, IData)>() };
     private static IEnumerable<IEnumerable<(string, IData)>> Success(string name, IData data) 
         => new [] { new [] { (name, data) } };

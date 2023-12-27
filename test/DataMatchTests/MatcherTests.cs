@@ -10,6 +10,7 @@ namespace StructuralizeSharpTests.DataMatcherTests;
 public class MatcherTests {
 
     public record NumberData(int Number) : IData;
+    public record StringData(string Str) : IData;
 
     [Test]
     public void ShouldCaptureData() {
@@ -29,5 +30,24 @@ public class MatcherTests {
 
         Assert.That(output.Count, Is.EqualTo(1));
         Assert.That(output[0].Count, Is.EqualTo(0));
+    }
+
+    private static readonly object[] MatchExactTestData = new object[] {
+        new object[] { new NumberData(5), new NumberData(5), true},
+        new object[] { new NumberData(4), new NumberData(5), false},
+        new object[] { new NumberData(4), new StringData("4"), false},
+    };
+
+    [TestCaseSource(nameof(MatchExactTestData))]
+    public void ShouldMatchExact(IData pattern, IData data, bool successful) {
+        var output = new Matcher().Match(new Exact(pattern), data).ToList();
+
+        if (successful) {
+            Assert.That(output.Count, Is.EqualTo(1));
+            Assert.That(output[0].Count, Is.EqualTo(0));
+        }
+        else {
+            Assert.That(output.Count, Is.EqualTo(0));
+        }
     }
 }
