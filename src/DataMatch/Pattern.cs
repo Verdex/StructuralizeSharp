@@ -8,3 +8,4 @@ public interface IData {
 public interface IPattern { }
 
 public record Capture(string Name) : IPattern;
+public record Wild() : IPattern;
