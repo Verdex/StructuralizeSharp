@@ -7,7 +7,7 @@ public interface IListData : IData {
     IReadOnlyList<IData> ToList();
 }
 
-public class ListData(params IData[] datas) : IListData {
+public record ListData(params IData[] datas) : IListData {
     public IReadOnlyList<IData> ToList() => datas.ToList().AsReadOnly();
 }
 

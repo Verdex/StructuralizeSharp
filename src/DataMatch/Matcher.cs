@@ -1,4 +1,5 @@
 
+using System.Linq;
 using System.Collections.Generic;
 
 namespace StructuralizeSharp.DataMatch;
@@ -20,15 +21,16 @@ public class Matcher : IMatcher {
         };
     }
 
-    private IEnumerable<IEnumerable<(string, IData)>> MatchList(IPattern[] listPattern, IReadOnlyList<IData> listData) {
-        if(listPattern.Length != listData.Count) {
-            yield break;
+    private IEnumerable<IEnumerable<(string, IData)>> MatchList(IPattern[] patterns, IReadOnlyList<IData> datas) {
+        if(patterns.Length != datas.Count) {
+            return Array.Empty<IEnumerable<(string, IData)>>();
         }
-        foreach(var (pattern, data) in listPattern.Zip(listData)) {
-            foreach( var result in Match(pattern, data) ) {
-                yield return result;
-            }
+
+        IEnumerable<IEnumerable<(string, IData)>> Ml(IEnumerable<(IPattern, IData)> targets) {
+
         }
+
+        return Ml(patterns.Zip(datas));
     }
 
     private static IEnumerable<IEnumerable<(string, IData)>> Failure() => Array.Empty<IEnumerable<(string, IData)>>();
